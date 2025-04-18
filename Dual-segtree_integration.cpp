@@ -1,3 +1,4 @@
+//U
 template<typename T>
 struct DualSegtree {
     struct Action {
