@@ -4,8 +4,6 @@
 #endif
 #include<bits/stdc++.h>
 using namespace std;
-#include<atcoder/all>
-using namespace atcoder;
 using ll=long long;
 using it=__int128;
 using vl=vector<ll>;
@@ -93,6 +91,44 @@ constexpr ob2 d4[]={{-1,0},{0,-1},{0,1},{1,0}};
 constexpr ob2 d8[]={{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
 constexpr char Alph[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 constexpr char alph[]="abcdefghijklmnopqrstuvwxyz";
+//レーべンシュタイン距離--------------------------------------------------------------------------
+int LP(string &s,string &t){
+    int j=1,k=1;
+    vector<vector<int>> dp((int)s.size()+5,vector<int>((int)t.size()+5));
+    for(j=1;j<=(int)s.size();j++){
+        dp[j][0]=j;
+    }
+    for(k=1;k<=(int)t.size();k++){
+        dp[0][k]=k;
+    }
+    for(j=1;j<=(int)s.size();j++){
+        for(k=1;k<=(int)t.size();k++){
+            int m=min(dp[j-1][k]+1,dp[j][k-1]+1);
+            if(s[j-1]==t[k-1]){
+                m=min(m,dp[j-1][k-1]);
+                dp[j][k]=m;
+            }else{
+                m=min(m,dp[j-1][k-1]+1);
+                dp[j][k]=m;
+            }
+        }
+    }
+    return dp[s.size()][t.size()];
+}
+//タイマー---------------------------------------------------------------
+class Timer{
+    chrono::system_clock::time_point start;
+    public:
+    Timer():start(chrono::system_clock::now()){}
+    double count(){
+        chrono::duration<double> Time_=chrono::system_clock::now()-start;
+        return Time_.count();
+    }
+    bool isunder(double x){
+        return (this -> count())<x;
+    }
+};
+//---------------------------------------------------------------
 int main(){
     ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
