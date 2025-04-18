@@ -1084,7 +1084,154 @@ struct GridBFS {
         return dist[ti][tj];
     }
 };
-//--------------------------------------------------------------
+//ダイクストラ-----------------------------------------------------------------------------
+const int INF = 1e9;
+const int MAXN = 500; // 必要に応じて調整
+
+struct daijkstra {
+    int n;
+    vector<int> adjs[MAXN];
+    int cost[MAXN][MAXN], cap[MAXN][MAXN];
+    int flow[MAXN][MAXN];
+    int dist[MAXN], parent[MAXN], pi[MAXN];  // shortest path用
+
+    daijkstra(int n_) : n(n_) {
+        memset(cost, 0, sizeof(cost));
+        memset(cap, 0, sizeof(cap));
+        memset(flow, 0, sizeof(flow));
+        memset(pi, 0, sizeof(pi));
+    }
+
+    void add_edge(int u, int v, int c, int w) {
+        adjs[u].push_back(v);
+        adjs[v].push_back(u); // 逆辺も必要（残余グラフ用）
+        cap[u][v] = c;
+        cost[u][v] = w;
+        cost[v][u] = -w;
+    }
+
+    inline int pot(int u, int v) const {
+        return dist[u] + pi[u] - pi[v];
+    }
+
+    int dijkstra(int src, int dest) {
+        memset(dist, 0x3f, sizeof(dist));
+        memset(parent, -1, sizeof(parent));
+
+        priority_queue<pair<int, int>> q;
+        q.emplace(0, src);
+        dist[src] = 0;
+
+        while (!q.empty()) {
+            int curr = q.top().second;
+            q.pop();
+
+            if (parent[curr] >= 0) continue;
+            parent[curr] = -parent[curr] - 1;
+
+            for (int adj : adjs[curr]) {
+                if (parent[adj] >= 0) continue;
+
+                if (flow[adj][curr] && pot(curr, adj) - cost[adj][curr] < dist[adj]) {
+                    dist[adj] = pot(curr, adj) - cost[adj][curr];
+                    parent[adj] = -curr - 1;
+                    q.emplace(-dist[adj], adj);
+                }
+
+                if (flow[curr][adj] < cap[curr][adj] && pot(curr, adj) + cost[curr][adj] < dist[adj]) {
+                    dist[adj] = pot(curr, adj) + cost[curr][adj];
+                    parent[adj] = -curr - 1;
+                    q.emplace(-dist[adj], adj);
+                }
+            }
+        }
+
+        for (int i = 0; i < n; ++i)
+            pi[i] += dist[i];
+
+        return dist[dest];
+    }
+
+    pair<int, int> mcmf(int src, int sink) {
+        memset(flow, 0, sizeof(flow));
+        memset(pi, 0, sizeof(pi));
+
+        int minCost = 0, maxFlow = 0;
+
+        while (dijkstra(src, sink) < INF) {
+            int bot = INF;
+
+            for (int v = sink, u = parent[v]; v != src; u = parent[v = u]) {
+                bot = min(bot, flow[v][u] ? flow[v][u] : cap[u][v] - flow[u][v]);
+            }
+
+            for (int v = sink, u = parent[v]; v != src; u = parent[v = u]) {
+                if (flow[v][u]) {
+                    flow[v][u] = false;
+                    minCost -= cost[v][u];
+                } else {
+                    flow[u][v] = true;
+                    minCost += cost[u][v];
+                }
+            }
+
+            maxFlow += bot;
+        }
+
+        return make_pair(minCost, maxFlow);
+    }
+};
+//重みつきuf--------------------------------------------
+template<class Abel> struct WeightUnionFind {
+    vector<int> par;
+    vector<int> rank;
+    vector<Abel> diff_weight;
+
+    WeightUnionFind(int n = 1, Abel SUM_UNITY = 0) {
+        init(n, SUM_UNITY);
+    }
+
+    void init(int n = 1, Abel SUM_UNITY = 0) {
+        par.resize(n); rank.resize(n); diff_weight.resize(n);
+        for (int i = 0; i < n; ++i) par[i] = i, rank[i] = 0, diff_weight[i] = SUM_UNITY;
+    }
+
+    int root(int x) {
+        if (par[x] == x) {
+            return x;
+        }
+        else {
+            int r = root(par[x]);
+            diff_weight[x] += diff_weight[par[x]];
+            return par[x] = r;
+        }
+    }
+
+    Abel weight(int x) {
+        root(x);
+        return diff_weight[x];
+    }
+
+    bool issame(int x, int y) {
+        return root(x) == root(y);
+    }
+
+    bool merge(int x, int y, Abel w) {
+        w += weight(x); w -= weight(y);
+        x = root(x); y = root(y);
+        if (x == y) return false;
+        if (rank[x] < rank[y]) swap(x, y), w = -w;
+        if (rank[x] == rank[y]) ++rank[x];
+        par[y] = x;
+        diff_weight[y] = w;
+        return true;
+    }
+
+    Abel diff(int x, int y) {
+        return weight(y) - weight(x);
+    }
+};
+//-----------------------------------------------------------
 int main(){
     ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
