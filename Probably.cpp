@@ -1,6 +1,7 @@
 #include<bits/stdc++.h>
 #include <random>
 using namespace std;
+//確率pでtrueを返す関数
 bool prob(double p){
   static mt19937_64 mt64(0);
   uniform_real_distribution<double> uni(0.0, 1.0);
