@@ -314,7 +314,405 @@ class Random_Gen{
         }
         int64_t operator()(){ return gen(); }
 };
-//-------------------------------------------------------------------
+//N進数構造体-------------------------------------------------------------------
+struct BaseN{
+    ll num;
+    string snum;
+    int base=10;
+    BaseN(){
+        num=0;
+        snum="0";
+    }
+    BaseN(int bas){
+        num=0;
+        base=bas;
+        snum="0";
+    }
+    string to_base(ll num){
+        string ret="";
+        ll divi=base;
+        while(num!=0){
+            ret.push_back('0'+num%base);
+            num-=num%divi;
+            num/=base;
+        }
+        reverse(ret.begin(),ret.end());
+        return ret;
+    }
+    BaseN(int bas,ll n){
+        base=bas;
+        num=n;
+        snum=to_base(n);
+    }
+    bool operator==(const BaseN &other){
+        return num==other.num;
+    }
+    bool operator!=(const BaseN &other){
+        return num!=other.num;
+    }
+    BaseN operator+(const BaseN &other){
+        BaseN ret(base,num+other.num);
+        return ret;
+    }
+    BaseN operator+(const int &other){
+        BaseN ret(base,num+other);
+        return ret;
+    }
+    BaseN operator-(const BaseN &other){
+        BaseN ret(base,num-other.num);
+        return ret;
+    }
+    BaseN operator-(const int &other){
+        BaseN ret(base,num+other);
+        return ret;
+    }
+    void operator++(){
+        num++;
+        snum=to_base(num);
+        return;
+    }
+    void operator--(){
+        num--;
+        snum=to_base(num);
+        return;
+    }
+
+};
+//hush string--------------------------------------------------------
+struct HashString{
+    using ll=long long;
+    int N=0;
+    vector<pair<ll,ll>> hash_data;
+    string str;
+    const ll mod=998244353;
+    const ll mod2=79020979;
+    const ll r=2092427;
+    const ll r2=870083;
+    ll mypow(ll x,ll n,ll MOD){
+        ll ret=1;
+        while(n>0){
+            if(n&1){
+                ret=ret*x%MOD;
+            }
+            x=x*x%MOD;
+            n>>=1;
+        }
+        return ret;
+    }
+    HashString(){
+        N=0;
+        str="";
+        hash_data.resize(1,make_pair(0,0));
+    }
+    HashString(const string &s){
+        N=s.size();
+        hash_data.resize(N+1,make_pair(0,0));
+        str=s;
+        for(int i=0;i<N;i++){
+            hash_data[i+1].first=hash_data[i].first+s[i]*mypow(r,i+1,mod);
+            hash_data[i+1].second=hash_data[i].second+s[i]*mypow(r2,i+1,mod2);
+            hash_data[i+1].first%=mod;
+            hash_data[i+1].second%=mod2;
+        }
+    }
+    HashString(const HashString &hs){
+        N=hs.N;
+        str=hs.str;
+        hash_data=hs.hash_data;
+    }
+    pair<ll,ll> substr_hash(int left,int right){
+        pair<ll,ll> ret=hash_data[right];
+        ret.first-=hash_data[left].first-mod;
+        ret.second-=hash_data[left].second-mod2;
+        ret.first%=mod;
+        ret.second%=mod2;
+        ret.first*=mypow(r,5000000-left,mod);
+        ret.second*=mypow(r2,5000000-left,mod2);
+        ret.first%=mod;
+        ret.second%=mod2;
+        return ret;
+    }
+    int size(){
+        return str.size();
+    }
+    void print_hash(int left,int right){
+      cout<<substr_hash(left,right).first<<" "<<substr_hash(left,right).second<<'\n';
+    }
+};
+istream& operator>>(istream& is, HashString& hs) {
+    is >> hs.str;
+    hs.N=hs.str.size();
+    hs.hash_data.resize(hs.N+1,make_pair(0,0));
+    for(int i=0;i<hs.N;i++){
+        hs.hash_data[i+1].first=hs.hash_data[i].first+hs.str[i]*hs.mypow(hs.r,i+1,hs.mod);
+        hs.hash_data[i+1].second=hs.hash_data[i].second+hs.str[i]*hs.mypow(hs.r2,i+1,hs.mod2);
+        hs.hash_data[i+1].first%=hs.mod;
+        hs.hash_data[i+1].second%=hs.mod2;
+    }
+    return is;
+}
+//ランレングス圧縮--------------------------------------------------------------------
+template<typename v,typename val>
+vector<pair<val,long long>> RunLength(v &vec,val tmp){
+    vector<pair<val,long long>> ret;
+    if((int)vec.size()==0){
+        return ret;
+    }
+    ret.push_back(make_pair(vec[0],1));
+    for(int i=1;i<(int)vec.size();i++){
+        if(vec[i]==ret.back().first){
+            ret.back().second++;
+        }else{
+            ret.push_back(make_pair(vec[i],1));
+        }
+    }
+    return ret;
+}
+//トライ木-------------------------------------------------------------
+struct TrieNode{
+    char ch;
+    map<char,TrieNode *> chi;
+    int cnt=0;
+    int isend=0;
+    int during=0;
+    TrieNode(char c){
+        ch=c;
+    }
+};
+using pn=TrieNode *;
+struct TrieTree{
+    map<char,pn> root;
+    void insert(const string &s){
+        int N=(int)s.size();
+        if(s.empty()){
+            return;
+        }
+        pn now;
+        if(root.contains(s[0])){
+            now=root[s[0]];
+        }else{
+            root[s[0]]=new TrieNode(s[0]);
+            now=root[s[0]];
+        }
+        for(int i=0;i<N-1;i++){
+            now->cnt++;
+            now->during++;
+            if(now->chi.contains(s[i+1])){
+                now=now->chi[s[i+1]];
+            }else{
+                now->chi[s[i+1]]=new TrieNode(s[i+1]);
+                now=now->chi[s[i+1]];
+            }
+        }
+        now->cnt++;
+        now->isend++;
+        return;
+    }
+    bool find(const string &s){
+        if(s.empty()){
+            return false;
+        }
+        int N=(int)s.size();
+        pn now;
+        if(root.contains(s[0])){
+            now=root[s[0]];
+        }else{
+            return false;
+        }
+        for(int i=0;i<N-1;i++){
+            if(!(now->during)){
+                return false;
+            }
+            if(now->chi.contains(s[i+1])){
+                now=now->chi[s[i+1]];
+            }else{
+                return false;
+            }
+        }
+        if(now->isend){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    bool prefix_find(const string &s){
+        if(s.empty()){
+            return false;
+        }
+        int N=(int)s.size();
+        pn now;
+        if(root.contains(s[0])){
+            now=root[s[0]];
+        }else{
+            return false;
+        }
+        for(int i=0;i<N-1;i++){
+            if(now->chi.contains(s[i+1])){
+                now=now->chi[s[i+1]];
+            }else{
+                return false;
+            }
+        }
+        return true;
+    }
+    int prefix_count(const string &s){
+        if(s.empty()){
+            return 0;
+        }
+        int N=(int)s.size();
+        pn now;
+        if(root.contains(s[0])){
+            now=root[s[0]];
+        }else{
+            return 0;
+        }
+        for(int i=0;i<N-1;i++){
+            if(now->chi.contains(s[i+1])){
+                now=now->chi[s[i+1]];
+            }else{
+                return 0;
+            }
+        }
+        return now->cnt;
+    }
+    bool erase(const string &s){
+        if (!find(s)) {
+            return false; // 存在しない単語は削除できない
+        }   
+
+        int N = s.size();
+        vector<pn> path; // たどったノードを保存
+        pn now = root[s[0]];
+
+        path.push_back(now);
+        for (int i = 1; i < N; i++) {
+            now = now->chi[s[i]];
+            path.push_back(now);
+        }
+        // 逆順に削除処理を行う
+        for (int i = N - 1; i >= 0; i--) {
+            now = path[i];
+            now->cnt--;  // cntを減算
+            if (now->cnt <= 0) { // もう使われていなければ削除
+                if (i > 0) {
+                    path[i - 1]->chi.erase(s[i]);
+                    delete now;
+                } else {
+                    root.erase(s[0]);
+                    delete now;
+                }
+            }
+        }
+ 
+        return true;
+    } 
+    
+};
+//双対セグ木-----------------------------------------------------
+template<typename T>
+struct DualSegtree {
+    struct Action {
+        bool assign;    // trueなら「区間代入」
+        T assign_val;   // 代入値
+        T add;          // 加算値
+        ll time;        // 代入のタイムスタンプ
+        Action(): assign(false), assign_val(0), add(0), time(0) {}
+    };
+
+    int N, log, siz;
+    ll timestamp = 1;          // 代入の順序管理用
+    vector<Action> data;       // セグ木のタグ配列
+    vector<T> init;            // 元の値（point query時に使用）
+
+    DualSegtree(int n, T init_val = T()) {
+        N = n;
+        log = 0;
+        while ((1 << log) < N) ++log;
+        siz = 1 << log;
+        data.assign(2*siz, Action());
+        init.assign(siz, init_val);
+    }
+
+    DualSegtree(const vector<T>& v) {
+        N = v.size();
+        log = 0;
+        while ((1 << log) < N) ++log;
+        siz = 1 << log;
+        data.assign(2*siz, Action());
+        init.assign(siz, T());
+        for (int i = 0; i < N; i++) init[i] = v[i];
+    }
+
+    // タグ a をノード k に合成して上書き
+    void apply_node(int k, const Action& a) {
+        data[k] = compose(a, data[k]);
+    }
+
+    // a を先に適用、その後 b を適用するときの合成結果
+    // -> 代入が来たら古いタグをクリアし、加算は積み重ね
+    static Action compose(const Action& a, const Action& b) {
+        // a のあとに b を適用
+        Action res;
+        if (b.assign) {
+            res.assign     = true;
+            res.assign_val = b.assign_val;
+            res.add        = b.add;
+            res.time       = b.time;
+        } else {
+            res.assign     = a.assign;
+            res.assign_val = a.assign_val;
+            res.add        = a.add + b.add;
+            res.time       = a.time;
+        }
+        return res;
+    }
+
+    // 区間 [l, r) にタグ a を設定
+    void range_apply(int l, int r, const Action& a) {
+        l += siz; r += siz;
+        while (l < r) {
+            if (l & 1) apply_node(l++, a);
+            if (r & 1) apply_node(--r, a);
+            l >>= 1; r >>= 1;
+        }
+    }
+
+    // 区間代入 [l, r): a.assign = true
+    void range_assign(int l, int r, T x) {
+        Action a;
+        a.assign     = true;
+        a.assign_val = x;
+        a.add        = 0;
+        a.time       = timestamp++;
+        range_apply(l, r, a);
+    }
+
+    // 区間加算 [l, r): a.assign = false
+    void range_add(int l, int r, T x) {
+        Action a;
+        a.assign     = false;
+        a.assign_val = 0;
+        a.add        = x;
+        a.time       = timestamp; // add は順序影響なし
+        range_apply(l, r, a);
+    }
+
+    // 点 p の現在値を取得
+    T get(int p) {
+        int k = p + siz;
+        Action acc;  // 蓄積タグ（初期化：identity）
+        // ルートから葉までの経路上のタグを順に合成
+        vector<int> path;
+        for (int i = k; i > 0; i >>= 1) path.push_back(i);
+        for (int i = path.size() - 1; i >= 0; --i) {
+            acc = compose(data[path[i]], acc);
+        }
+        // 代入タグがあればそれ + 加算、なければ元の値 + 加算
+        if (acc.assign) return acc.assign_val + acc.add;
+        else             return init[p] + acc.add;
+    }
+};
+//---------------------------------------------------
 int main(){
     ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
