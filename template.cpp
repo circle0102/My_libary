@@ -712,7 +712,379 @@ struct DualSegtree {
         else             return init[p] + acc.add;
     }
 };
-//---------------------------------------------------
+//フェニック木+転倒数---------------------------------------------------
+template <typename T>
+struct fenwick_tree {
+    vector<T> data;
+    int N = 0;
+
+    fenwick_tree() {}
+    fenwick_tree(int n) : N(n), data(n, 0) {}
+
+    // i 番目（0-indexed）に x を加算
+    void add(int i, T x) {
+        assert(0 <= i && i < N);
+        for (++i; i <= N; i += i & -i) data[i-1] += x;
+    }
+
+    // [0, r) の和
+    T sum(int r) const {
+        assert(0 <= r && r <= N);
+        T s = 0;
+        while (r > 0) {
+            s += data[r-1];
+            r -= r & -r;
+        }
+        return s;
+    }
+
+    // [l, r) の和
+    T sum(int l, int r) const {
+        assert(0 <= l && l <= r && r <= N);
+        return sum(r) - sum(l);
+    }
+
+    // i 番目の値を取得
+    T get(int i) const {
+        return sum(i+1) - sum(i);
+    }
+
+    // i 番目の値を x にセット
+    void set(int i, T x) {
+        add(i, x - get(i));
+    }
+
+    // 転倒数を数える静的メソッド
+    // 配列 a の転倒数を O(n log n) で返す
+    static long long inversion_count(vector<T> a) {
+        int n = a.size();
+        // 座標圧縮
+        vector<T> xs = a;
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+
+        // 圧縮後の値域で BIT を用意
+        fenwick_tree<long long> bit(xs.size());
+
+        long long inv = 0;
+        // 右から左へスキャンし、「より小さい要素の個数」を足し合わせ
+        for (int i = n - 1; i >= 0; --i) {
+            int idx = int(lower_bound(xs.begin(), xs.end(), a[i]) - xs.begin());
+            inv += bit.sum(idx);  // 圧縮値 < idx の要素数
+            bit.add(idx, 1);
+        }
+        return inv;
+    }
+};
+//セグ木--------------------------------------------------------
+template <class S, S(*op)(S,S), S(*e)()> struct segtree{
+    vector<S> d;
+    int size;
+    int N;
+    int log;
+    //log計算
+    int ceil_pow2(int n) {
+        int x = 0;
+        while ((1U << x) < (unsigned int)(n)) x++;
+        return x;
+    }
+    void update(int p){
+        d[p]=op(d[p*2],d[p*2+1]);
+    }
+    segtree(int n){
+        log = ceil_pow2(n);
+        size = 1 << log;
+        d.resize(size*2+1,e());
+        N=n;
+    }
+    void set(int p,S x){
+        assert(0<=p && p<N);
+        p+=size;
+        d[p]=x;
+        for(int i=1;i<=log;i++){
+            update(p>>i);
+        }
+        return;
+    }
+    S get(int p){
+        assert(0<=p && p<N);
+        return d[p+size];
+    }
+    S prod(int l,int r){
+        assert(0<=l && l<=r && r<=N);
+        S sml=e();
+        S smr=e();
+        l+=size;
+        r+=size;
+        while(l<r){
+            if(l & 1){
+                sml=op(sml,d[l++]);
+            }
+            if(r & 1){
+                smr = op(d[--r], smr);
+            }
+            l >>=1;
+            r >>=1;
+        }
+        return op(sml,smr);
+    }
+    S all_prod(){
+        return d[1];
+    }
+    S operator[](int idx){
+        return get(idx);
+    }
+};
+//union-find+kruskal--------------------------------------------
+struct UnionFind {
+    int N;
+    vector<int> par, rank, siz;
+    int cnt;
+    UnionFind(int n) {
+        assert(0 <= n);
+        N = n;
+        cnt = n;
+        par.assign(N, -1);
+        rank.assign(N, 0);
+        siz.assign(N, 1);
+    }
+    // x の根を返す（経路圧縮あり）
+    int leader(int x) {
+        assert(0 <= x && x < N);
+        return par[x] < 0 ? x : par[x] = leader(par[x]);
+    }
+    // 同じ集合か？
+    bool same(int x, int y) {
+        assert(0 <= x && x < N);
+        assert(0 <= y && y < N);
+        return leader(x) == leader(y);
+    }
+    // x, y をマージし、根を返す
+    int merge(int x, int y) {
+        assert(0 <= x && x < N);
+        assert(0 <= y && y < N);
+        x = leader(x);
+        y = leader(y);
+        if (x == y) return x;
+        --cnt;
+        if (rank[x] < rank[y]) swap(x, y);
+        par[y] = x;
+        if (rank[x] == rank[y]) ++rank[x];
+        siz[x] += siz[y];
+        return x;
+    }
+    // x の集合のサイズ
+    int size(int x) {
+        assert(0 <= x && x < N);
+        return siz[leader(x)];
+    }
+    // 現在のグループ数
+    int count_groups() const {
+        return cnt;
+    }
+    // 各要素の属するグループをまとめて返す
+    vector<vector<int>> groups() {
+        vector<vector<int>> m(N);
+        for (int v = 0; v < N; v++) {
+            m[leader(v)].push_back(v);
+        }
+        vector<vector<int>> res;
+        for (auto &grp : m) if (!grp.empty()) res.push_back(grp);
+        return res;
+    }
+};
+
+// ---------- Kruskal 法用の Edge と kruskal 関数 ----------
+struct Edge {
+    int u, v;
+    ll weight;
+    bool operator<(Edge const& o) const {
+        return weight < o.weight;
+    }
+};
+
+// n: 頂点数, edges: (u, v, weight) のリスト
+// 最小全域木の重み合計を返す
+ll kruskal(int n, vector<Edge>& edges) {
+    UnionFind uf(n);
+    sort(edges.begin(), edges.end());
+    ll total_weight = 0;
+    for (auto const& e : edges) {
+        if (!uf.same(e.u, e.v)) {
+            uf.merge(e.u, e.v);
+            total_weight += e.weight;
+        }
+    }
+    return total_weight;
+}
+//BFS DFS-----------------------------------------------------------
+class Graph {
+    int V;
+    vector<vector<int>> adj;
+public:
+    Graph(int V) : V(V) {
+        adj.resize(V);
+    }
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    void BFS(int start) {
+        vector<bool> visited(V, false);
+        queue<int> q;
+        visited[start] = true;
+        q.push(start);
+        cout << "BFS: ";
+        while (!q.empty()) {
+            int cur = q.front(); q.pop();
+            cout << cur << " ";
+            for (int nb : adj[cur]) {
+                if (!visited[nb]) {
+                    visited[nb] = true;
+                    q.push(nb);
+                }
+            }
+        }
+        cout << "\n";
+    }
+    void DFS(int start) {
+        vector<bool> visited(V, false);
+        stack<int> s;
+        s.push(start);
+        cout << "DFS: ";
+        while (!s.empty()) {
+            int cur = s.top(); s.pop();
+            if (!visited[cur]) {
+                visited[cur] = true;
+                cout << cur << " ";
+            }
+            for (auto it = adj[cur].rbegin(); it != adj[cur].rend(); ++it) {
+                if (!visited[*it]) s.push(*it);
+            }
+        }
+        cout << "\n";
+    }
+};
+//二部グラフ判定------------------------------------------------------
+class BipartiteGraph {
+    int V;
+    vector<vector<int>> adj;
+public:
+    BipartiteGraph(int V) : V(V) {
+        adj.resize(V);
+    }
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    bool isBipar() {
+        vector<int> color(V, -1);
+        queue<int> q;
+        for (int st = 0; st < V; ++st) {
+            if (color[st] != -1) continue;
+            color[st] = 0;
+            q.push(st);
+            while (!q.empty()) {
+                int cur = q.front(); q.pop();
+                for (int nb : adj[cur]) {
+                    if (color[nb] == -1) {
+                        color[nb] = 1 - color[cur];
+                        q.push(nb);
+                    } else if (color[nb] == color[cur]) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+};
+
+//トポロジカルソート-------------------------------------------------------
+class DirectedGraph {
+    int V;
+    vector<vector<int>> adj;
+public:
+    DirectedGraph(int V) : V(V) {
+        adj.resize(V);
+    }
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+    }
+    vector<int> topologicalSort() {
+        vector<int> inDeg(V, 0);
+        for (int u = 0; u < V; ++u)
+            for (int v : adj[u])
+                ++inDeg[v];
+        queue<int> q;
+        for (int i = 0; i < V; ++i)
+            if (inDeg[i] == 0) q.push(i);
+        vector<int> res;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            res.push_back(u);
+            for (int v : adj[u]) {
+                if (--inDeg[v] == 0)
+                    q.push(v);
+            }
+        }
+        if ((int)res.size() != V)
+            throw runtime_error("Graph has a cycle. Topo sort not possible.");
+        return res;
+    }
+};
+//GridBFS-------------------------------------------------------------
+struct GridBFS {
+    int H, W;
+    vector<string> grid;
+    vector<vector<int>> dist;
+
+    // dx, dy: 上下左右
+    const int dx[4] = {1, -1, 0, 0};
+    const int dy[4] = {0, 0, 1, -1};
+
+    GridBFS(int H, int W, const vector<string>& grid)
+        : H(H), W(W), grid(grid), dist(H, vector<int>(W, -1)) {}
+
+    // (si, sj) を起点に BFS 実行
+    void bfs(int si, int sj) {
+        assert(0 <= si && si < H && 0 <= sj && sj < W);
+        // 初期化
+        for (int i = 0; i < H; ++i)
+            fill(dist[i].begin(), dist[i].end(), -1);
+
+        queue<pair<int,int>> q;
+        if (grid[si][sj] == '#') return;  // 壁からは出発不可
+        dist[si][sj] = 0;
+        q.emplace(si, sj);
+
+        while (!q.empty()) {
+            auto [i, j] = q.front(); q.pop();
+            for (int d = 0; d < 4; ++d) {
+                int ni = i + dx[d];
+                int nj = j + dy[d];
+                if (ni < 0 || ni >= H || nj < 0 || nj >= W) continue;
+                if (grid[ni][nj] == '#') continue;      // 壁はスキップ
+                if (dist[ni][nj] != -1) continue;      // 既訪問
+                dist[ni][nj] = dist[i][j] + 1;
+                q.emplace(ni, nj);
+            }
+        }
+    }
+
+    // (ti, tj) に到達可能か？
+    bool reachable(int ti, int tj) const {
+        assert(0 <= ti && ti < H && 0 <= tj && tj < W);
+        return dist[ti][tj] != -1;
+    }
+
+    // (ti, tj) までの最短距離。到達不可なら -1 を返す
+    int distance(int ti, int tj) const {
+        assert(0 <= ti && ti < H && 0 <= tj && tj < W);
+        return dist[ti][tj];
+    }
+};
+//--------------------------------------------------------------
 int main(){
     ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
