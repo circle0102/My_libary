@@ -1,3 +1,4 @@
+//U
 template <typename T>
 struct fenwick_tree {
     vector<T> data;
