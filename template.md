@@ -1,6 +1,6 @@
 # テンプレート概略
 
-## 型定義・型省略
+## 型定義・型省略(一部省略)
 ```cpp
 #pragma GCC optimize("O3")
 #ifdef __LOCAL
@@ -10,52 +10,6 @@
 using namespace std;
 using ll=long long;
 using it=__int128;
-using vl=vector<ll>;
-using vvl=vector<vl>;
-using vvvl=vector<vvl>;
-using vvvvl=vector<vvvl>;
-using vvvvvl=vector<vvvvl>;
-using vi=vector<it>;
-using vvi=vector<vi>;
-using vvvi=vector<vvi>;
-using vvvvi=vector<vvvi>;
-using vvvvvi=vector<vvvvi>;
-using vd=vector<double>;
-using vvd=vector<vd>;
-using vvvd=vector<vvd>;
-using vvvvd=vector<vvvd>;
-using vvvvvd=vector<vvvvd>;
-using vs=vector<string>;
-using vvs=vector<vs>;
-using vvvs=vector<vvs>;
-using pls=pair<ll,string>;
-using vpls=vector<pls>;
-using vvpls=vector<vpls>;
-using vvvpls=vector<vvpls>;
-using pss=pair<string,string>;
-using vpss=vector<pss>;
-using vvpss=vector<vpss>;
-using vvvpss=vector<vvpss>;
-using ql=queue<ll>;
-using dql=deque<ll>;
-using pql=priority_queue<ll,vl,greater<>>;
-using pqbl=priority_queue<ll>;
-using sl=set<ll>;
-using vsl=vector<sl>;
-using vvsl=vector<vsl>;
-using vvvsl=vector<vvsl>;
-using spls=set<pls>;
-using vspls=vector<spls>;
-using spss=set<pss>;
-using vspss=vector<spss>;
-using mll=map<ll,ll>;
-using vmll=vector<mll>;
-using mls=map<ll,string>;
-using vmls=vector<mls>;
-using msl=map<string,ll>;
-using vmsl=vector<msl>;
-using mss=map<string,string>;
-using vmss=vector<mss>;
 #define rep(i,n) for(ll i=0;i<n;++i)
 #define reph(i,n) for(ll i=0;i<=n;++i)
 #define repr(i,a,b) for(ll i=a;i<b;++i)
@@ -100,5 +54,62 @@ constexpr char alph[]="abcdefghijklmnopqrstuvwxyz";
 ```cpp
 LP(string r,string l);
 ```
-### 計算量
-- $O(|S||T|)$
+## タイマー
+```cpp
+Timer timer; // タイマー開始
+timer.count() //時間取得
+timer.isunder(t) //時間がtを超えているか判定
+```
+## 累積和
+```cpp
+sum_vec<int> sv(v); //vectorから構築
+v.cul_sum(1, 4) //累積和再計算
+v.cul_sum(int l, int r) //区間(l,r]の計算
+v.push_back(6); //追加
+v.pop_back(); //削除
+```
+## Mod Int
+```cpp
+modint::set_mod(1000000007);  //固定MOD
+modint a=10; //動的
+//四則演算可能
+cout << (ll)f << endl; // 出力時はキャスト
+```
+## 二分探索
+```cpp
+search_min(vec, check); //check(vec[i])==true となる最小のiを返す。
+search_max(vec, check); //check(vec[i])==true となる最大のiを返す。
+search_min(l, r, check) //区間でcheck(x)==true となる最小のxを返す。
+search_max(l, r, check) //区間でcheck(x)==true となる最小のxを返す。
+```
+## 確率pでtrueを返す関数
+```cpp
+prob(double p)
+```
+## 乱数生成
+```cpp
+Random_Gen rnd(l,r); //[l,r)の整数を生成
+rnd.gen(); //乱数取得
+rnd.get_range() //範囲取得
+rnd.set_range(l,r);//範囲変更
+```
+## N進数構造体
+```cpp
+BaseN a(n,m); //n進数でのmとして定義
+b.to_base(n); //基数変換
+//演算・比較は通常通り
+```
+## hush string
+```cpp
+HashString hs(""); //初期化(cin>>hs;でも可)
+hs.substr_hash(l,r); //部分ハッシュ取得
+```
+## ランレングス圧縮
+```cpp
+//例
+RunLength<vector<char>, char>(s,' '); //{{'a',2},{'b',3},{'c',1}}
+RunLength<vector<char>, char>(s,0); //{{'1',2},{'2',3},{'3',1}}
+```
+## トライ木
+```cpp
+```
