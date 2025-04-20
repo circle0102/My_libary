@@ -290,7 +290,7 @@ int search_max(vector<T> &vec,bool(*check)(T)){
     int ok=-1;
     int ng=(int)vec.size();
     while(abs(ok-ng)>1){
-        int mid=(ok+mid)/2;
+        int mid=(ok+ng)/2;
         if(check(mid)){
             ok=mid;
         }else{
