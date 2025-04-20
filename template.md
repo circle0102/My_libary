@@ -1,6 +1,6 @@
 # テンプレート概略
 
-##型定義・型省略
+## 型定義・型省略
 ```cpp
 #pragma GCC optimize("O3")
 #ifdef __LOCAL
@@ -96,7 +96,7 @@ constexpr ob2 d8[]={{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
 constexpr char Alph[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 constexpr char alph[]="abcdefghijklmnopqrstuvwxyz";
 ```
-##レーベンシュタイン距離
+## レーベンシュタイン距離
 ```cpp
 LP(string r,string l);
 ```
