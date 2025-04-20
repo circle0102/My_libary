@@ -173,48 +173,101 @@ template<typename T> struct sum_vec{
     }
 };
 //Mod Int----------------------------------------------------------------
-struct modint{
-    using ll=long long;
-    ll mod=998244353;
-    ll num=0;
-    modint(){
-        mod=998244353;
-        num=0;
+struct modint {
+    using ll = long long;
+    ll num;
+    static ll mod;
+
+    // コンストラクタ
+    modint() : num(0) {}
+    modint(ll n) {
+        num = normalize(n);
     }
-    modint(ll n){
-        num=n;
-        mod=998244353;
+
+    // normalize：負の数やmod超えを処理
+    static ll normalize(ll n) {
+        n %= mod;
+        if (n < 0) n += mod;
+        return n;
     }
-    modint(ll n,ll m){
-        mod=m;
-        num=n;
+
+    // MOD設定（必要なら）
+    static void set_mod(ll m) {
+        mod = m;
     }
-    operator long long(){
+
+    // 演算子オーバーロード
+    modint& operator+=(const modint& rhs) {
+        num += rhs.num;
+        if (num >= mod) num -= mod;
+        return *this;
+    }
+
+    modint& operator-=(const modint& rhs) {
+        num -= rhs.num;
+        if (num < 0) num += mod;
+        return *this;
+    }
+
+    modint& operator*=(const modint& rhs) {
+        num = (num * rhs.num) % mod;
+        return *this;
+    }
+
+    modint operator+(const modint& rhs) const {
+        modint res = *this;
+        res += rhs;
+        return res;
+    }
+
+    modint operator-(const modint& rhs) const {
+        modint res = *this;
+        res -= rhs;
+        return res;
+    }
+
+    modint operator*(const modint& rhs) const {
+        modint res = *this;
+        res *= rhs;
+        return res;
+    }
+
+    bool operator==(const modint& rhs) const {
+        return num == rhs.num;
+    }
+
+    bool operator!=(const modint& rhs) const {
+        return num != rhs.num;
+    }
+
+    // 除算（逆元使用）
+    modint inv() const {
+        return pow(mod - 2); // Fermatの小定理（modが素数のとき）
+    }
+
+    modint pow(ll e) const {
+        modint res = 1, base = *this;
+        while (e) {
+            if (e & 1) res *= base;
+            base *= base;
+            e >>= 1;
+        }
+        return res;
+    }
+
+    modint& operator/=(const modint& rhs) {
+        return *this *= rhs.inv();
+    }
+
+    modint operator/(const modint& rhs) const {
+        modint res = *this;
+        res /= rhs;
+        return res;
+    }
+
+    explicit operator ll() const {
         return num;
     }
-    void operator=(ll n){
-        num=n;
-    }
-    void operator+=(ll add){
-        num+=add;
-    }
-    void operator-=(ll sub){
-        num-=sub;
-    }
-    void operator*=(ll tim){
-        num*=tim%mod;
-        num%=mod;
-    }
-    bool operator==(ll other){
-        return num==other%mod;
-    }
-    bool operator!=(ll other){
-        return num!=other%mod;
-    }
-    bool operator<(ll other){
-        return num<other;
-    }
-    
 };
 //にぶたん-------------------------------------------------------------------------
 template<class T> 
