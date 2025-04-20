@@ -96,7 +96,9 @@ constexpr ob2 d8[]={{-1,-1},{-1,0},{-1,1},{0,-1},{0,1},{1,-1},{1,0},{1,1}};
 constexpr char Alph[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 constexpr char alph[]="abcdefghijklmnopqrstuvwxyz";
 ```
-文字列 `S`, `T` のLevenshtein距離を返す．
-
-## 計算量
+##レーベンシュタイン距離
+```cpp
+LP(string r,string l);
+```
+### 計算量
 - $O(|S||T|)$
