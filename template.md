@@ -112,6 +112,12 @@ RunLength<vector<char>, char>(s,0); //{{'1',2},{'2',3},{'3',1}}
 ```
 ## トライ木
 ```cpp
+TrieTree TTree;//定義
+TTree.insert("YAJU&U");//挿入
+TTree.find("YAJU");//完全一致文字列探索
+TTree.prefix_find("YAJU");//接頭辞探索
+TTree.count_prefix("YA");//接頭辞の数を返す
+TTree.erase("YAJUJIN");//削除
 ```
 ## 双対セグ木
 ```cpp
@@ -154,4 +160,66 @@ groups() //全グループのリストを返す
 ```cpp
 vector<Edge> edges={{u1,v1,w1},{u2,v2,w2}}; //定義
 ll mst_cost =kruskal(t,edges); //最小全域木の重み合計(tは頂点数)
+```
+## BFS DFS
+```cpp
+Graph g(5);//グラフ構築
+addEdge(u, v) //辺u-vを追加
+BFS(start) //startからBFS（訪問順）
+DFS(start) //startからDFS（訪問順）
+```
+## 二部グラフ判定
+```cpp
+BipartiteGraph g(4);//グラフ構築
+g.addEdge(u,v);//辺追加
+g.isBipar();//二部グラフ判定
+```
+## トポロジカルソート
+```cpp
+DirectedGraph g(3); //グラフ構築
+g.addEdge(u,v); //辺追加
+g.topologicalSort(); //トポロジカルソート
+```
+## グリッドBFS(例)
+```cpp
+vector<string> grid = {"....",".#..","...."};
+GridBFS g(3,4,grid);//3*4のグリッド定義
+g.bfs(0,0);//(0,0)からBFS
+cout << g.distance(2, 3); //距離
+cout << g.reachable(1, 1); //到達可能か
+```
+## ダイクストラ
+```cpp
+daijkstra g(4);//定義
+add_edge(u, v, cap, cost)//辺追加
+mcmf(src, sink)//最小費用流を(minCost,maxFlow)で返す
+```
+## 重み付きuf
+```cpp
+WeightUnionFind<int> uf(5);//定義
+merge(x, y, w)//x-y=wの関係で統合
+issame(x, y)//同じ集合か
+diff(x, y)//y-x の重み差分を返す
+weight(x)//xの根までの累積重み
+```
+## 遅延セグ木
+```cpp
+//関数定義(区間加算+区間最小の例)
+using S=int;
+using F=int;
+S op(S a,S b) {return std::min(a, b);}
+S e() {return 1e9;}
+S mapping(F f,S x) { return f+x;}
+F composition(F f, F g) {return f+g;}
+F id() {return 0;}
+//使用方法
+vector<int> v;//vector定義
+lazy_segtree<S, op, e, F, mapping, composition, id> seg(v);//木構築
+set(p,x)//p 番目を x に代入（即反映）
+get(p)//p 番目の値を取得（遅延処理含む）
+apply(l,r,f)//区間 [l,r) に作用素 f を適用
+prod(l, r)//区間 [l,r) のモノイド積を取得
+all_prod()//全体のモノイド積を取得
+max_right(l,g)//g(prod(l,r)) がtrueな最大r
+min_left(r,g)//g(prod(l,r)) がtrueな最小l
 ```
