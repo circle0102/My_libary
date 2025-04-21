@@ -1,6 +1,7 @@
 //U
 #include <bits/stdc++.h>
 using namespace std;
+//トライ木のノード
 struct TrieNode{
     char ch;
     map<char,TrieNode *> chi;
@@ -12,8 +13,10 @@ struct TrieNode{
     }
 };
 using pn=TrieNode *;
+//トライ木（重複を許す）
 struct TrieTree{
     map<char,pn> root;
+    //文字列を追加
     void insert(const string &s){
         int N=(int)s.size();
         if(s.empty()){
@@ -40,6 +43,7 @@ struct TrieTree{
         now->isend++;
         return;
     }
+    //文字列が存在するか確認
     bool find(const string &s){
         if(s.empty()){
             return false;
@@ -67,6 +71,7 @@ struct TrieTree{
             return false;
         }
     }
+    //sを接頭辞に持つ文字列が存在するか検索
     bool prefix_find(const string &s){
         if(s.empty()){
             return false;
@@ -87,6 +92,7 @@ struct TrieTree{
         }
         return true;
     }
+    //sを接頭辞に持つ文字列の個数を検索
     int prefix_count(const string &s){
         if(s.empty()){
             return 0;
@@ -107,6 +113,7 @@ struct TrieTree{
         }
         return now->cnt;
     }
+    //Trie木からsを一つ削除
     bool erase(const string &s){
         if (!find(s)) {
             return false; // 存在しない単語は削除できない
