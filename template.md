@@ -115,10 +115,43 @@ RunLength<vector<char>, char>(s,0); //{{'1',2},{'2',3},{'3',1}}
 ```
 ## 双対セグ木
 ```cpp
+DualSegtree<ll> seg(n); //初期値0で長さnのセグ木
+DualSegtree<ll> seg(v); //初期配列vから構築
+seg.range_assign(l,r,c); //[l,r)をcに代入
+seg.range_add(l,r,c); //[l,r)にcを加算
+seg.get(i); //点iの値を取得
 ```
 ## フェニック木+転倒数
 ```cpp
+fenwick_tree<int> bit(n); //長さnのBIT
+bit.add(i,a); //i番目に+a
+bit.sum(l,r); //[l,r) の和
+// 転倒数の計算
+fenwick_tree<int>::inversion_count(vector);
 ```
 ## セグ木
 ```cpp
+//op定義(例)
+ll op(ll a, ll b) {return max(a,b);}
+ll e() {return LLONG_MIN;}
+segtree<ll,op,e> seg(n);
+seg.set(i,a); //位置iをaに更新
+seg.get(p) //位置pの値を取得
+seg.all_prod() //全区間にopを適用
+seg.prod(l,r); // [l,r)にop適応
+```
+## union find
+```cpp
+UnionFind uf(n);
+merge(x,y) //xとyを同じ集合に統合
+same(x,y) //xとyが同じ集合か
+leader(x) //xの属する集合の代表元
+size(x) //xの属する集合の要素数
+count_groups() //連結成分の数
+groups() //全グループのリストを返す
+```
+## クラスカル法
+```cpp
+vector<Edge> edges={{u1,v1,w1},{u2,v2,w2}}; //定義
+ll mst_cost =kruskal(t,edges); //最小全域木の重み合計(tは頂点数)
 ```
