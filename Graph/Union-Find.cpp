@@ -58,6 +58,7 @@ struct UnionFind{
         par.push_back(-1);
         siz.push_back(1);
         N++;
+        cnt++;
         return;
     }
     vector<vector<int>> groups(){
